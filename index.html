@@ -6,19 +6,21 @@
     <title>XOXO Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: #f8f9fa;
         }
         .game {
             display: grid;
             grid-template-columns: repeat(3, 100px);
             grid-template-rows: repeat(3, 100px);
             gap: 10px;
+            margin-bottom: 20px;
         }
         .box {
             display: flex;
@@ -29,21 +31,59 @@
             font-size: 24px;
             font-weight: bold;
             cursor: pointer;
-            border: 1px solid #000;
-            transition: background-color 0.3s;
+            border: 2px solid #343a40;
+            border-radius: 8px;
+            background-color: #fff;
+            transition: background-color 0.3s, transform 0.3s;
         }
         .box:hover {
-            background-color: #ccc;
+            background-color: #e9ecef;
+            transform: scale(1.05);
+        }
+        .reset-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #343a40;
+            color: #fff;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .reset-button:hover {
+            background-color: #495057;
+            transform: scale(1.05);
+        }
+        .scoreboard, .turn-indicator {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 600px) {
+            .game {
+                grid-template-columns: repeat(3, 80px);
+                grid-template-rows: repeat(3, 80px);
+            }
+            .box {
+                width: 80px;
+                height: 80px;
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="turn-indicator">Turn: <span id="turn">O</span></div>
     <div class="game"></div>
+    <div class="scoreboard">Score - O: <span id="score-o">0</span> X: <span id="score-x">0</span></div>
+    <button class="reset-button" onclick="resetGame()">Reset Game</button>
     <script>
         const game = document.querySelector('.game');
         let boxes = [];
-        let turn = 'X';
+        let turn = 'O';
         let isGameOver = false;
+        let scoreO = 0;
+        let scoreX = 0;
 
         for (let i = 0; i < 9; i++) {
             const box = document.createElement('div');
@@ -56,12 +96,13 @@
         function playGame(box) {
             if (isGameOver || box.textContent) return;
             box.textContent = turn;
-            turn = turn === 'X' ? 'O' : 'X';
             checkWin();
+            turn = turn === 'O' ? 'X' : 'O';
+            document.getElementById('turn').textContent = turn;
         }
 
         function checkWin() {
-            let winConditions = [
+            const winConditions = [
                 [0, 1, 2],
                 [3, 4, 5],
                 [6, 7, 8],
@@ -73,18 +114,46 @@
             ];
 
             for (let condition of winConditions) {
-                let [a, b, c] = condition;
+                const [a, b, c] = condition;
                 if (boxes[a].textContent && boxes[a].textContent === boxes[b].textContent && boxes[a].textContent === boxes[c].textContent) {
-                    alert(`Player ${turn} wins!`);
+                    highlightWinningBoxes(a, b, c);
+                    setTimeout(() => alert(`Player ${boxes[a].textContent} wins!`), 100);
+                    updateScore(boxes[a].textContent);
                     isGameOver = true;
-                    break;
+                    return;
                 }
             }
 
-            if (!isGameOver && !boxes.some(box => !box.textContent)) {
-                alert('It\'s a draw!');
+            if (!isGameOver && boxes.every(box => box.textContent)) {
+                setTimeout(() => alert('It\'s a draw!'), 100);
                 isGameOver = true;
             }
+        }
+
+        function highlightWinningBoxes(a, b, c) {
+            boxes[a].style.backgroundColor = '#28a745';
+            boxes[b].style.backgroundColor = '#28a745';
+            boxes[c].style.backgroundColor = '#28a745';
+        }
+
+        function updateScore(winner) {
+            if (winner === 'O') {
+                scoreO++;
+                document.getElementById('score-o').textContent = scoreO;
+            } else {
+                scoreX++;
+                document.getElementById('score-x').textContent = scoreX;
+            }
+        }
+
+        function resetGame() {
+            boxes.forEach(box => {
+                box.textContent = '';
+                box.style.backgroundColor = '#fff';
+            });
+            turn = 'O';
+            isGameOver = false;
+            document.getElementById('turn').textContent = turn;
         }
     </script>
 </body>
